@@ -1,0 +1,18 @@
+version: '2'
+
+services:
+  timescaledb:
+    image: timescale/timescaledb
+    volumes:
+      - ./initdb.sql:/docker-entrypoint-initdb.d/initdb.sql
+    ports:
+      - 3456:5432
+    environment:
+      - POSTGRES_USER=timescale
+      - POSTGRES_PASSWORD=timescale
+      - POSTGRES_DB=timescale
+
+  grafana:
+    image: grafana/grafana
+    ports:
+    - 3000:3000

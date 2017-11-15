@@ -1,0 +1,17 @@
+*.iml
+*.ipr
+*.iws
+target/
+build/
+.svn/
+.idea/
+.gradle/
+**/.project
+**/.classpath
+**/.settings/
+ethias-model/src/main/java/
+finder-ethias/node_modules/
+finder-ethias/test-results/
+finder-ethias/typings/
+**/out/
+finder-ethias-integration-tests/node_modules/
