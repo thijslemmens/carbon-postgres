@@ -18,6 +18,7 @@ dependencies {
     testCompile 'org.scalatest:scalatest_2.12:3.0.4'
     testCompile group: 'com.typesafe.akka', name: 'akka-testkit_2.12', version: '2.5.6'
     testCompile 'org.scalamock:scalamock_2.12:4.0.0'
+    testCompile 'junit:junit:4.12'
 }
 
 task wrapper(type: Wrapper) {
