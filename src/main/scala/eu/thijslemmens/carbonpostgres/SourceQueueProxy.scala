@@ -1,6 +1,6 @@
 package eu.thijslemmens.carbonpostgres
 
-import akka.actor.Actor
+import akka.actor.{Actor, ActorLogging, ActorRef}
 import akka.stream.scaladsl.SourceQueueWithComplete
 
 /**
@@ -8,13 +8,17 @@ import akka.stream.scaladsl.SourceQueueWithComplete
   * threadsafe wayl
   *
   * @param queue The queue to proxy
-  * @tparam T The type of message the queue takes
   */
-class SourceQueueProxy[T](val queue: SourceQueueWithComplete[T]) extends Actor {
+class SourceQueueProxy(val queue: SourceQueueWithComplete[Record]) extends Actor with ActorLogging{
 
   override def receive = {
-    case message: T => {
-      sender() ! queue.offer(message)
+    case message: Record => {
+      log.debug("Offering new record")
+      val s = sender()
+      queue.offer(message).onComplete(tQOR => s ! {
+        log.debug("Replying to sender")
+        tQOR.get
+      })(context.dispatcher)
     }
     case  _ => sender() ! "Message of the wrong type!"
   }

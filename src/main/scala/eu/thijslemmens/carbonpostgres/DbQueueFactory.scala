@@ -13,7 +13,7 @@ import scala.concurrent.duration._
 
 import scala.concurrent.Future
 
-class DbQueueFactory(val dbWriter: DbWriter, val parallillism: Int)(implicit val system: ActorSystem) {
+class DbQueueFactory(val dbWriter: DbWriter, val parallillism: Int, val maxQueueSize: Int = 10)(implicit val system: ActorSystem) {
 
   implicit val materializer: ActorMaterializer = ActorMaterializer()
   implicit val timeout = Timeout(5.seconds)
@@ -28,8 +28,8 @@ class DbQueueFactory(val dbWriter: DbWriter, val parallillism: Int)(implicit val
   }
 
   def getDbQueue(): DbQueue = {
-    val dbQueue = Source.queue[Record](10, OverflowStrategy.backpressure)
-      .batch(1, record => {
+    val dbQueue = Source.queue[Record](maxQueueSize, OverflowStrategy.backpressure)
+      .batch(2000, record => {
         List(record)
       })( (list, record) => {
         list :+ record
@@ -43,11 +43,11 @@ class DbQueueFactory(val dbWriter: DbWriter, val parallillism: Int)(implicit val
         log.debug("record succesfully added")
       })).run()
 
-    val actor = system.actorOf(Props(new SourceQueueProxy[Record](dbQueue)))
+    val actor = system.actorOf(Props(new SourceQueueProxy(dbQueue)).withDispatcher("pinned-dispatcher"))
 
     return (record: Record) => {
       val result = actor ? record
-      result.asInstanceOf[Future[Future[QueueOfferResult]]].flatten
+      result.asInstanceOf[Future[QueueOfferResult]]
     }
   }
 
