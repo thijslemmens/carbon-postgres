@@ -1,25 +1,16 @@
 package eu.thijslemmens.carbonpostgres
 
 import akka.Done
-import akka.actor.ActorSystem
 import akka.stream.scaladsl.{Sink, Source}
 import akka.stream.{ActorMaterializer, QueueOfferResult}
-import akka.testkit.{ImplicitSender, TestKit}
+import akka.testkit.TestKit
 import org.junit.runner.RunWith
-import org.scalamock.scalatest.MockFactory
-import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 
 @RunWith(classOf[JUnitRunner])
-class DbQueueSpec extends TestKit(ActorSystem("testActorSystem")) with ImplicitSender with WordSpecLike with Matchers with BeforeAndAfterAll with MockFactory{
-
-  implicit val ec: ExecutionContext = system.dispatcher
-  implicit val materializer = ActorMaterializer()
-  override def afterAll {
-    TestKit.shutdownActorSystem(system)
-  }
+class DbQueueSpec extends BaseTest {
 
   val dbWriter = mock[DbWriter]
   val dbQueueFactory: DbQueueFactory = new DbQueueFactory(dbWriter, 1)
@@ -45,11 +36,11 @@ class DbQueueSpec extends TestKit(ActorSystem("testActorSystem")) with ImplicitS
       val nmbOfRecords = 100000
 
       val testStream = Source(1 to nmbOfRecords).mapAsync(10){ i => {
-          dbQueue2.queue(record1)
-        }
+        dbQueue2.queue(record1.copy(value = i))
+      }
       }.runWith(Sink.foreach[QueueOfferResult](qOR => assert(qOR === QueueOfferResult.enqueued)))
 
-      Await.result(testStream, 10.seconds)
+      Await.result(testStream, 100.seconds)
 
       while (dbWriter2.nmbOfRecords < nmbOfRecords){
         Thread.sleep(1000)

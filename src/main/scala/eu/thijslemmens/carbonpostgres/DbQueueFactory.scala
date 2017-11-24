@@ -43,7 +43,7 @@ class DbQueueFactory(val dbWriter: DbWriter, val parallillism: Int, val maxQueue
         log.debug("record succesfully added")
       })).run()
 
-    val actor = system.actorOf(Props(new SourceQueueProxy(dbQueue)).withDispatcher("pinned-dispatcher"))
+    val actor = system.actorOf(Props(new SourceQueueProxy(dbQueue)))
 
     return (record: Record) => {
       val result = actor ? record
