@@ -34,6 +34,7 @@ class PostgresWriter(val host: String, val port: Int, val user: String, val pass
   }
 
   override def write(records: List[Record]): Future[Done] = {
+    log.info(s"Writing batch of ${records.size} records")
     val baseQuery = "INSERT INTO records(time, metric, value) VALUES ";
     val values = records.map(record => {
       s"(to_timestamp(${record.timeStamp}), '${record.key}', ${record.value})"
