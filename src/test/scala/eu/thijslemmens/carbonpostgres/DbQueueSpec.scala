@@ -40,7 +40,7 @@ class DbQueueSpec extends BaseTest {
       }
       }.runWith(Sink.foreach[QueueOfferResult](qOR => assert(qOR === QueueOfferResult.enqueued)))
 
-      Await.result(testStream, 100.seconds)
+      Await.result(testStream, 20.seconds)
 
       while (dbWriter2.nmbOfRecords < nmbOfRecords){
         Thread.sleep(1000)

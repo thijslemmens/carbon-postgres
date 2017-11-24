@@ -21,7 +21,7 @@ class SourceQueueProxySpec extends BaseTest {
 
       val record1 = Record(1, "test", 12)
       val record2 = Record(2, "test", 13)
-      within(100.second){
+      within(1.second){
         inSequence {
           (sourceQueue.offer(_)).expects(record1).returns({
             Future {
@@ -40,8 +40,8 @@ class SourceQueueProxySpec extends BaseTest {
           val f1 = actor ? record1
           val f2 = actor ? record2
 
-          Await.result(f1, 200000.millis)
-          Await.result(f2, 200000.millis)
+          Await.result(f1, 200.millis)
+          Await.result(f2, 200.millis)
           Thread.sleep(500)
         }
       }

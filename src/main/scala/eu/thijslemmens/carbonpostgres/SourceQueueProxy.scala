@@ -7,7 +7,7 @@ import akka.pattern.pipe
 
 /**
   * The Source.queue offer method is not threadsafe. This actor can be used to forward a message to the queue in a
-  * threadsafe wayl
+  * threadsafe way
   *
   * @param queue The queue to proxy
   */
