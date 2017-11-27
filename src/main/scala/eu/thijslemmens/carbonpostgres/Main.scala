@@ -7,6 +7,7 @@ import akka.stream._
 import akka.stream.scaladsl.Tcp.{IncomingConnection, ServerBinding}
 import akka.stream.scaladsl.{Framing, _}
 import akka.util.{ByteString, Timeout}
+import eu.thijslemmens.carbonpostgres.db.{DbQueueFactory, PostgresWriter}
 
 import scala.concurrent._
 

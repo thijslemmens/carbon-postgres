@@ -1,7 +1,9 @@
-package eu.thijslemmens.carbonpostgres
-import akka.Done
+package eu.thijslemmens.carbonpostgres.db
 
-import scala.concurrent.{ExecutionContext, Future}
+import akka.Done
+import eu.thijslemmens.carbonpostgres.Record
+
+import scala.concurrent.Future
 
 trait DbWriter {
 

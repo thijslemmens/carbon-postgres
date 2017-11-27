@@ -1,18 +1,18 @@
-package eu.thijslemmens.carbonpostgres
+package eu.thijslemmens.carbonpostgres.db
 
-import akka.{Done, NotUsed}
-import akka.pattern._
-import akka.actor.{ActorRef, ActorSystem, Props}
+import akka.actor.{ActorSystem, Props}
 import akka.event.Logging
+import akka.pattern._
 import akka.stream.ActorAttributes.supervisionStrategy
 import akka.stream._
+import akka.stream.scaladsl.GraphDSL.Implicits._
 import akka.stream.scaladsl.{Balance, Flow, GraphDSL, Merge, Sink, Source}
 import akka.util.Timeout
-import GraphDSL.Implicits._
+import akka.{Done, NotUsed}
+import eu.thijslemmens.carbonpostgres.Record
 
-
-import scala.concurrent.duration._
 import scala.concurrent.Future
+import scala.concurrent.duration._
 
 class DbQueueFactory(val dbWriter: DbWriter, val parallellism: Int, val maxQueueSize: Int = 10)(implicit val system: ActorSystem) {
 

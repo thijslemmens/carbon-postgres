@@ -1,8 +1,9 @@
-package eu.thijslemmens.carbonpostgres
+package eu.thijslemmens.carbonpostgres.db
 
-import akka.actor.{Actor, ActorLogging, ActorRef, Stash}
-import akka.stream.scaladsl.SourceQueueWithComplete
+import akka.actor.{Actor, ActorLogging, Stash}
 import akka.pattern.pipe
+import akka.stream.scaladsl.SourceQueueWithComplete
+import eu.thijslemmens.carbonpostgres.Record
 
 
 /**

@@ -1,13 +1,14 @@
-package eu.thijslemmens.carbonpostgres
-import akka.Done
+package eu.thijslemmens.carbonpostgres.db
+
 import akka.actor.Props
+import akka.pattern._
 import akka.stream.QueueOfferResult
 import akka.stream.scaladsl.SourceQueueWithComplete
-
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration._
-import akka.pattern._
 import akka.util.Timeout
+import eu.thijslemmens.carbonpostgres.{BaseTest, Record}
+
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 
 
 class SourceQueueProxySpec extends BaseTest {

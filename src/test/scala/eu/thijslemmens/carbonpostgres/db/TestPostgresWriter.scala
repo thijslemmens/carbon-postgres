@@ -1,8 +1,9 @@
-package eu.thijslemmens.carbonpostgres
+package eu.thijslemmens.carbonpostgres.db
 
 import akka.Done
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
+import eu.thijslemmens.carbonpostgres.Record
 
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}

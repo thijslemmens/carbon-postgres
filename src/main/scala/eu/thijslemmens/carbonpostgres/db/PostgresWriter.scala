@@ -1,14 +1,15 @@
-package eu.thijslemmens.carbonpostgres
+package eu.thijslemmens.carbonpostgres.db
 
 import akka.Done
 import akka.actor.ActorSystem
 import akka.event.Logging
-import com.github.mauricio.async.db.{Configuration, Connection, QueryResult}
+import com.github.mauricio.async.db.Configuration
 import com.github.mauricio.async.db.pool.{ConnectionPool, PoolConfiguration}
 import com.github.mauricio.async.db.postgresql.PostgreSQLConnection
 import com.github.mauricio.async.db.postgresql.pool.PostgreSQLConnectionFactory
+import eu.thijslemmens.carbonpostgres.Record
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 class PostgresWriter(val host: String, val port: Int, val user: String, val password: Option[String], val poolSize: Int, val database: Option[String])(implicit val system: ActorSystem) extends DbWriter {
 

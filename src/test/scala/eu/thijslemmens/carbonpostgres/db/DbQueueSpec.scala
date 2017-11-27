@@ -1,13 +1,14 @@
-package eu.thijslemmens.carbonpostgres
+package eu.thijslemmens.carbonpostgres.db
 
 import akka.Done
+import akka.stream.QueueOfferResult
 import akka.stream.scaladsl.{Sink, Source}
-import akka.stream.{ActorMaterializer, QueueOfferResult}
-import akka.testkit.TestKit
+import eu.thijslemmens.carbonpostgres.{BaseTest, Record}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+
 import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{Await, Future}
 
 @RunWith(classOf[JUnitRunner])
 class DbQueueSpec extends BaseTest {

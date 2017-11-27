@@ -1,6 +1,7 @@
-package eu.thijslemmens.carbonpostgres
+package eu.thijslemmens.carbonpostgres.db
 
 import akka.stream.QueueOfferResult
+import eu.thijslemmens.carbonpostgres.Record
 
 import scala.concurrent.Future
 
