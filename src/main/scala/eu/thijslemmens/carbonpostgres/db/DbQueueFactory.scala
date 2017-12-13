@@ -14,7 +14,7 @@ import eu.thijslemmens.carbonpostgres.Record
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-class DbQueueFactory(val dbWriter: DbWriter, val parallellism: Int, val maxQueueSize: Int = 10)(implicit val system: ActorSystem) {
+class DbQueueFactory(val dbWriter: DbWriter, val parallellism: Int, val maxQueueSize: Int = 10, val maxBatchSize: Int = 1000)(implicit val system: ActorSystem) {
 
   implicit val materializer: ActorMaterializer = ActorMaterializer()
   implicit val timeout = Timeout(5.seconds)
@@ -29,7 +29,7 @@ class DbQueueFactory(val dbWriter: DbWriter, val parallellism: Int, val maxQueue
   }
 
   def getDbQueue(): DbQueue = {
-    val batch: Flow[Record, List[Record], NotUsed] = Flow[Record].batch(1000, record => {
+    val batch: Flow[Record, List[Record], NotUsed] = Flow[Record].batch(maxBatchSize, record => {
       List(record)
     })( (list, record) => {
       list :+ record
@@ -60,9 +60,16 @@ class DbQueueFactory(val dbWriter: DbWriter, val parallellism: Int, val maxQueue
 
     val actor = system.actorOf(Props(new SourceQueueProxy(dbQueue)))
 
-    return (record: Record) => {
-      val result = actor ? record
-      result.asInstanceOf[Future[QueueOfferResult]]
+    return new DbQueue {
+      override def shutDown(): Future[Done] = {
+        dbQueue.complete()
+        dbQueue.watchCompletion()
+      }
+
+      override def queue(record: Record): Future[QueueOfferResult] = {
+        val result = actor ? record
+        result.asInstanceOf[Future[QueueOfferResult]]
+      }
     }
   }
 

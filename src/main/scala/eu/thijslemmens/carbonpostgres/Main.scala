@@ -7,9 +7,11 @@ import akka.stream._
 import akka.stream.scaladsl.Tcp.{IncomingConnection, ServerBinding}
 import akka.stream.scaladsl.{Framing, _}
 import akka.util.{ByteString, Timeout}
+import eu.thijslemmens.carbonpostgres.config.{CascadingConfigProvider, ConfigProvider, DefaultConfigProvider}
 import eu.thijslemmens.carbonpostgres.db.{DbQueueFactory, PostgresWriter}
 
 import scala.concurrent._
+import scala.concurrent.duration._
 
 
 
@@ -19,16 +21,24 @@ object Main extends App{
   implicit val materializer: ActorMaterializer = ActorMaterializer()
   implicit val ec: ExecutionContext = system.dispatcher
 
-  val log = Logging(system, "MainLogger");
+  val log = Logging(system, "MainLogger")
 
-  val postgresWriter = new PostgresWriter("localhost", 3456, "timescale", Some("timescale"), 10, Some("timescale"))
+  val configProvider: ConfigProvider = new CascadingConfigProvider(new EnvConfigProvider, new DefaultConfigProvider)
 
-  val dbQueueFactory: DbQueueFactory = new DbQueueFactory(postgresWriter, 10)
+  val postgresWriter = new PostgresWriter(configProvider.getStringParameter("db.host").get,
+    configProvider.getIntParameter("db.port").get,
+    configProvider.getStringParameter("db.user").get,
+    configProvider.getStringParameter("db.password"),
+    configProvider.getIntParameter("db.poolsize").get,
+    configProvider.getStringParameter("db.database"))
+
+  val dbQueueFactory: DbQueueFactory = new DbQueueFactory(postgresWriter, 10, 2000, 1000)
 
   val dbQueue = dbQueueFactory.getDbQueue()
 
   val connections: Source[IncomingConnection, Future[ServerBinding]] =
-    Tcp().bind("127.0.0.1", 2003)
+    Tcp().bind(configProvider.getStringParameter("carbon.tcp.host").get,
+      configProvider.getIntParameter("carbon.tcp.port").get)
   connections runForeach { connection =>
     log.debug(s"New connection from: ${connection.remoteAddress}")
 
@@ -56,6 +66,13 @@ object Main extends App{
       })
 
     connection.handleWith(tcpToRecord)
+  }
+
+  sys.ShutdownHookThread {
+    log.info("Shutting Down the dbQueue")
+    Await.result(dbQueue.shutDown(), 10.seconds)
+    log.info("DbQueue shut down")
+    system.terminate()
   }
 
 
