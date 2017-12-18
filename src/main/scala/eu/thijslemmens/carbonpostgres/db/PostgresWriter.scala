@@ -12,8 +12,9 @@ import eu.thijslemmens.carbonpostgres.Record
 import scala.concurrent.Future
 
 class PostgresWriter(val host: String, val port: Int, val user: String, val password: Option[String], val poolSize: Int, val database: Option[String])(implicit val system: ActorSystem) extends DbWriter {
-
   val log = Logging(system, "PostgresWriter")
+  log.info(s"Initializing Postgreswriter with host: $host, port: $port, database: $database, user: $user, password: $password, poolSize: $poolSize")
+
   implicit val ec = system.dispatcher
 
   private val configuration: Configuration = new Configuration(

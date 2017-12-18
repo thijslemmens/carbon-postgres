@@ -7,7 +7,7 @@ import akka.stream._
 import akka.stream.scaladsl.Tcp.{IncomingConnection, ServerBinding}
 import akka.stream.scaladsl.{Framing, _}
 import akka.util.{ByteString, Timeout}
-import eu.thijslemmens.carbonpostgres.config.{CascadingConfigProvider, ConfigProvider, DefaultConfigProvider}
+import eu.thijslemmens.carbonpostgres.config._
 import eu.thijslemmens.carbonpostgres.db.{DbQueueFactory, PostgresWriter}
 
 import scala.concurrent._
@@ -16,14 +16,19 @@ import scala.concurrent.duration._
 
 
 object Main extends App{
-
   implicit val system = ActorSystem("CarbonImpersonator")
   implicit val materializer: ActorMaterializer = ActorMaterializer()
   implicit val ec: ExecutionContext = system.dispatcher
-
   val log = Logging(system, "MainLogger")
 
-  val configProvider: ConfigProvider = new CascadingConfigProvider(new EnvConfigProvider, new DefaultConfigProvider)
+  private val MEGABYTE = 1024L * 1024L
+
+  def bytesToMeg(bytes: Long) = bytes / MEGABYTE
+  val heapMaxSize = bytesToMeg(Runtime.getRuntime.maxMemory)
+  log.info(s"Starting application with max heap size $heapMaxSize Mb")
+
+
+  val configProvider: ConfigProvider = new CascadingConfigProvider(new SystemPropConfigProvider, new EnvConfigProvider, new DefaultConfigProvider)
 
   val postgresWriter = new PostgresWriter(configProvider.getStringParameter("db.host").get,
     configProvider.getIntParameter("db.port").get,
@@ -34,11 +39,14 @@ object Main extends App{
 
   val dbQueueFactory: DbQueueFactory = new DbQueueFactory(postgresWriter, 10, 2000, 1000)
 
+  log.info("Starting DBQueue")
   val dbQueue = dbQueueFactory.getDbQueue()
 
   val connections: Source[IncomingConnection, Future[ServerBinding]] =
     Tcp().bind(configProvider.getStringParameter("carbon.tcp.host").get,
       configProvider.getIntParameter("carbon.tcp.port").get)
+
+  log.info("Starting to listen for tcp connections")
   connections runForeach { connection =>
     log.debug(s"New connection from: ${connection.remoteAddress}")
 

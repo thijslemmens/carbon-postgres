@@ -7,6 +7,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.bmuschko:gradle-docker-plugin:3.0.11'
+        classpath "com.avast.gradle:gradle-docker-compose-plugin:0.6.9"
     }
 }
 
@@ -14,6 +15,7 @@ apply plugin: 'scala'
 apply plugin: 'idea'
 apply plugin: 'application'
 apply plugin: com.bmuschko.gradle.docker.DockerRemoteApiPlugin
+apply plugin: 'docker-compose'
 
 
 sourceCompatibility = 1.8
@@ -54,4 +56,15 @@ task buildDockerImage(type: DockerBuildImage){
     dependsOn prepareDockerBuild
     inputDir = project.file("$buildDir/docker")
     buildArgs = ['PROJECT_NAME': installDist.destinationDir.name]
+    doLast {
+        project.extensions.getByName('dockerCompose').environment.put('DOCKER_IMAGE', imageId)
+    }
+
 }
+
+dockerCompose {
+    useComposeFiles = ['src/main/docker-compose/docker-compose.yml']
+    projectName = project.name
+}
+
+composeUp.dependsOn(buildDockerImage)

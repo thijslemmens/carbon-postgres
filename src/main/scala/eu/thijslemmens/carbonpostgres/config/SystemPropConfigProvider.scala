@@ -1,15 +1,13 @@
-package eu.thijslemmens.carbonpostgres
+package eu.thijslemmens.carbonpostgres.config
 
-import eu.thijslemmens.carbonpostgres.config.ConfigProvider
-
-class EnvConfigProvider extends ConfigProvider {
+class SystemPropConfigProvider extends ConfigProvider {
 
   /**
     * @param key The key of the parameter
     * @return The value of the parameter
     */
   override def getStringParameter(key: String): Option[String] = {
-    System.getenv(key) match {
+    System.getProperty(key) match {
       case null => None
       case s => Some(s)
     }

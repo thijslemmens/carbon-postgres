@@ -1,12 +1,21 @@
-version: '2'
+version: '3'
 
 services:
+  carbon-postgres:
+    image: ${DOCKER_IMAGE}
+    ports:
+      - :2003:2003
+    environment:
+      - JAVA_OPTS=-Ddb.host=timescaledb -Ddb.port=5432
+#      - db.host=timescaledb
+#      - db.port=5432
+
   timescaledb:
     image: timescale/timescaledb
     volumes:
       - ./initdb.sql:/docker-entrypoint-initdb.d/initdb.sql
     ports:
-      - 3456:5432
+    - :5432:5432
     environment:
       - POSTGRES_USER=timescale
       - POSTGRES_PASSWORD=timescale
@@ -15,4 +24,4 @@ services:
   grafana:
     image: grafana/grafana
     ports:
-    - 3000:3000
+    - :3000:3000
