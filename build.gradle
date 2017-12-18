@@ -3,6 +3,7 @@ version '1.0-SNAPSHOT'
 
 apply plugin: 'scala'
 apply plugin: 'idea'
+apply plugin: 'application'
 
 sourceCompatibility = 1.8
 
@@ -25,3 +26,5 @@ task wrapper(type: Wrapper) {
     gradleVersion = '4.3'
     distributionUrl = "https://services.gradle.org/distributions/gradle-$gradleVersion-all.zip"
 }
+
+mainClassName = 'eu.thijslemmens.carbonpostgres.Main'
