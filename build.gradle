@@ -1,9 +1,20 @@
 group 'eu.thijslemmens'
 version '1.0-SNAPSHOT'
 
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.bmuschko:gradle-docker-plugin:3.0.11'
+    }
+}
+
 apply plugin: 'scala'
 apply plugin: 'idea'
 apply plugin: 'application'
+apply plugin: com.bmuschko.gradle.docker.DockerRemoteApiPlugin
+
 
 sourceCompatibility = 1.8
 
@@ -28,3 +39,19 @@ task wrapper(type: Wrapper) {
 }
 
 mainClassName = 'eu.thijslemmens.carbonpostgres.Main'
+
+import com.bmuschko.gradle.docker.tasks.image.*
+
+task prepareDockerBuild(type: Copy){
+    dependsOn installDist
+
+    from 'src/main/docker'
+    from installDist.destinationDir.parent
+    into "$buildDir/docker"
+}
+
+task buildDockerImage(type: DockerBuildImage){
+    dependsOn prepareDockerBuild
+    inputDir = project.file("$buildDir/docker")
+    buildArgs = ['PROJECT_NAME': installDist.destinationDir.name]
+}
