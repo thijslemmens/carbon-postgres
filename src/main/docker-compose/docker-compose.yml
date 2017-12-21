@@ -7,6 +7,7 @@ services:
       - :2003:2003
     environment:
       - JAVA_OPTS=-Ddb.host=timescaledb -Ddb.port=5432
+#      Following does not work. Probably because of https://github.com/docker-library/openjdk/issues/135
 #      - db.host=timescaledb
 #      - db.port=5432
 
