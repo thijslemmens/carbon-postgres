@@ -1,5 +1,6 @@
 package eu.thijslemmens.carbonpostgres.db
 
+import akka.Done
 import akka.actor.Props
 import akka.pattern._
 import akka.stream.QueueOfferResult
@@ -56,6 +57,8 @@ class SourceQueueProxySpec extends BaseTest {
         QueueOfferResult.enqueued
       }
     }
+
+    override def shutDown(): Future[Done] = {return Future{ Done }}
   }
 
 }

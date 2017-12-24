@@ -17,6 +17,14 @@ apply plugin: 'application'
 apply plugin: com.bmuschko.gradle.docker.DockerRemoteApiPlugin
 apply plugin: 'docker-compose'
 
+sourceSets {
+    integrationTest {
+        scala {
+            srcDir 'src/integration-test/scala'
+        }
+    }
+}
+
 
 sourceCompatibility = 1.8
 
@@ -33,6 +41,10 @@ dependencies {
     testCompile group: 'com.typesafe.akka', name: 'akka-testkit_2.12', version: '2.5.6'
     testCompile 'org.scalamock:scalamock_2.12:4.0.0'
     testCompile 'junit:junit:4.12'
+
+    integrationTestCompile configurations.testCompile
+    integrationTestCompile group: 'org.postgresql', name: 'postgresql', version: '42.1.4'
+    integrationTestRuntime configurations.testRuntime
 }
 
 task wrapper(type: Wrapper) {
@@ -68,3 +80,27 @@ dockerCompose {
 }
 
 composeUp.dependsOn(buildDockerImage)
+
+task integrationTest(type: Test) {
+    dependsOn(composeUp)
+
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+
+    outputs.upToDateWhen {false}
+
+    //getting the port info
+    doFirst {
+        def cpServiceInfo = composeUp.getServicesInfos().get("carbon-postgres")
+        systemProperty("tcp.host", cpServiceInfo.host)
+        systemProperty("tcp.port", cpServiceInfo.port)
+
+        def tsServiceInfo = composeUp.getServicesInfos().get("timescaledb")
+        systemProperty("timescaledb.host", tsServiceInfo.host)
+        systemProperty("timescaledb.port", tsServiceInfo.port)
+    }
+
+    finalizedBy {
+        composeDown
+    }
+}
