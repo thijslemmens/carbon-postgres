@@ -104,3 +104,7 @@ task integrationTest(type: Test) {
         composeDown
     }
 }
+
+test {
+    outputs.upToDateWhen {false}
+}

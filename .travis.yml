@@ -1,0 +1,7 @@
+language: scala
+
+script: ./gradlew check -i
+
+cache:
+  directories:
+  - $HOME/.gradle
