@@ -1,6 +1,13 @@
+sudo: required
+
+services:
+  - docker
+
 language: scala
 
-script: ./gradlew check -i
+script:
+  - ./gradlew check -i
+  - ./gradlew integrationtest -i
 
 cache:
   directories:
