@@ -67,7 +67,7 @@ class DbQueueSpec extends BaseTest {
       nmbOfRecords +=  records.length
       Future {
         Thread.sleep(100)
-        println("RESOLVING FUTURE")
+        log.debug("RESOLVING FUTURE")
         Done
       }
     }
