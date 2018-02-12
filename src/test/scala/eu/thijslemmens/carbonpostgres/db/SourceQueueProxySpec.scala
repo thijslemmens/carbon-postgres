@@ -7,11 +7,13 @@ import akka.stream.QueueOfferResult
 import akka.stream.scaladsl.SourceQueueWithComplete
 import akka.util.Timeout
 import eu.thijslemmens.carbonpostgres.{BaseTest, Record}
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 
-
+@RunWith(classOf[JUnitRunner])
 class SourceQueueProxySpec extends BaseTest {
 
   implicit override val timeout = Timeout(100.seconds)
