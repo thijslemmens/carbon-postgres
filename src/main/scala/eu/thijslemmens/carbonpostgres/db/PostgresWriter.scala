@@ -9,12 +9,14 @@ import com.github.mauricio.async.db.postgresql.PostgreSQLConnection
 import com.github.mauricio.async.db.postgresql.pool.PostgreSQLConnectionFactory
 import eu.thijslemmens.carbonpostgres.Record
 
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
+import scala.util.Success
+import scala.concurrent.duration._
+
 
 class PostgresWriter(val host: String, val port: Int, val user: String, val password: Option[String], val poolSize: Int, val database: Option[String])(implicit val system: ActorSystem) extends DbWriter {
   val log = Logging(system, "PostgresWriter")
   log.info(s"Initializing Postgreswriter with host: $host, port: $port, database: $database, user: $user, password: $password, poolSize: $poolSize")
-
   implicit val ec = system.dispatcher
 
   private val configuration: Configuration = new Configuration(
@@ -29,6 +31,27 @@ class PostgresWriter(val host: String, val port: Int, val user: String, val pass
       new PostgreSQLConnectionFactory(configuration),
       PoolConfiguration.Default
     )
+
+  initialize()
+
+
+  private def initialize(): Unit = {
+    val result = connection.sendQuery("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;")
+      .andThen {
+        case Success(_) => connection.sendQuery("ALTER EXTENSION timescaledb UPDATE;")
+      } andThen {
+      case Success(_) => connection.sendQuery("CREATE TABLE records (" +
+        "  time TIMESTAMP NOT NULL ," +
+        "  metric TEXT NOT NULL ," +
+        "  VALUE FLOAT NOT NULL" +
+        ");");
+    } andThen {
+      case Success(_) => connection.sendQuery("SELECT create_hypertable('records', 'time', 'metric', 4);")
+    }
+
+    Await.result(result, 2.seconds)
+    log.info("Database is initialized")
+  }
 
   override def write(record: Record): Future[Done] = {
     val futureQueryResult = connection.sendPreparedStatement("INSERT INTO records(time, metric, value) VALUES (to_timestamp(?),?,?)", Array(record.timeStamp, record.key, record.value))
