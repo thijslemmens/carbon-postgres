@@ -10,8 +10,10 @@ import com.github.mauricio.async.db.postgresql.pool.PostgreSQLConnectionFactory
 import eu.thijslemmens.carbonpostgres.Record
 
 import scala.concurrent.{Await, Future}
-import scala.util.Success
+import scala.util.{Failure, Success}
 import scala.concurrent.duration._
+import scala.util.control.Breaks._
+
 
 
 class PostgresWriter(val host: String, val port: Int, val user: String, val password: Option[String], val poolSize: Int, val database: Option[String])(implicit val system: ActorSystem) extends DbWriter {
@@ -36,17 +38,33 @@ class PostgresWriter(val host: String, val port: Int, val user: String, val pass
 
 
   private def initialize(): Unit = {
-    val result = connection.sendQuery("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;")
-      .andThen {
+    var loop = true
+    var i = 0
+    while(loop && i < 5){
+      i += 1
+      try {
+        Await.result(connection.sendQuery("SELECT 1"), 1.second)
+        loop = false
+      } catch {
+        case e: Exception => {
+          log.warning("Validation failed")
+          Thread.sleep(1000)
+        }
+      }
+    }
+    val result = connection.sendQuery("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;").andThen {
         case Success(_) => connection.sendQuery("ALTER EXTENSION timescaledb UPDATE;")
+//        case Failure(e) => log.error("Something went wrong", e)
       } andThen {
       case Success(_) => connection.sendQuery("CREATE TABLE records (" +
         "  time TIMESTAMP NOT NULL ," +
         "  metric TEXT NOT NULL ," +
         "  VALUE FLOAT NOT NULL" +
         ");");
+//      case Failure(e) => log.error("Something went wrong", e)
     } andThen {
       case Success(_) => connection.sendQuery("SELECT create_hypertable('records', 'time', 'metric', 4);")
+//      case Failure(e) => log.error("Something went wrong", e)
     }
 
     Await.result(result, 2.seconds)
