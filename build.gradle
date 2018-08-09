@@ -17,6 +17,13 @@ apply plugin: 'application'
 apply plugin: com.bmuschko.gradle.docker.DockerRemoteApiPlugin
 apply plugin: 'docker-compose'
 
+docker {
+    registryCredentials {
+        username = System.getenv("DOCKER_USER")
+        password = System.getenv("DOCKER_PASSWORD")
+    }
+}
+
 sourceSets {
     integrationTest {
         scala {
@@ -60,14 +67,25 @@ task prepareDockerBuild(type: Copy){
     into "$buildDir/docker"
 }
 
+def imageName = 'thijslemmens/carbon-postgres'
+def imageTag = 'wip'
+
 task buildDockerImage(type: DockerBuildImage){
     dependsOn prepareDockerBuild
     inputDir = project.file("$buildDir/docker")
     buildArgs = ['PROJECT_NAME': installDist.destinationDir.name]
+    tag = "$imageName:$imageTag"
+
     doLast {
         project.extensions.getByName('dockerCompose').environment.put('DOCKER_IMAGE', imageId)
     }
 
+}
+
+task pushDockerImage(type: DockerPushImage){
+    dependsOn buildDockerImage
+    pushDockerImage.imageName = imageName
+    tag = imageTag
 }
 
 dockerCompose {
