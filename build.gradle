@@ -6,8 +6,8 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.bmuschko:gradle-docker-plugin:3.0.11'
-        classpath "com.avast.gradle:gradle-docker-compose-plugin:0.6.9"
+        classpath 'com.bmuschko:gradle-docker-plugin:3.6.0'
+        classpath "com.avast.gradle:gradle-docker-compose-plugin:0.8.4"
     }
 }
 
@@ -48,7 +48,7 @@ dependencies {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.3'
+    gradleVersion = '4.9'
     distributionUrl = "https://services.gradle.org/distributions/gradle-$gradleVersion-all.zip"
 }
 
