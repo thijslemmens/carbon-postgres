@@ -5,6 +5,7 @@ language: scala
 script:
 - "./gradlew check -i"
 - "./gradlew integrationtest -i"
+- "./gradlew pushDockerImage -i"
 cache:
   directories:
   - "$HOME/.gradle"
